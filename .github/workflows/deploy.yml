@@ -1,0 +1,40 @@
+name: CI-CD Deploy to Windows VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible python3-pip
+          pip3 install pywinrm
+
+      - name: Create cert files
+        run: |
+          echo "${{ secrets.CERT_PEM }}" | base64 --decode > cert.pem
+          echo "${{ secrets.CERT_KEY }}" | base64 --decode > key.pem
+
+      - name: Create inventory
+        run: |
+          echo "[windows]" > inventory.ini
+          echo "winvm ansible_host=${{ secrets.VM_IP }}" >> inventory.ini
+          echo "[windows:vars]" >> inventory.ini
+          echo "ansible_connection=winrm" >> inventory.ini
+          echo "ansible_port=5986" >> inventory.ini
+          echo "ansible_winrm_transport=certificate" >> inventory.ini
+          echo "ansible_winrm_cert_pem=$(pwd)/cert.pem" >> inventory.ini
+          echo "ansible_winrm_cert_key_pem=$(pwd)/key.pem" >> inventory.ini
+          echo "ansible_winrm_server_cert_validation=ignore" >> inventory.ini
+
+      - name: Run Ansible
+        run: ansible-playbook -i inventory.ini deploy.yml
