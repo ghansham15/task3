@@ -13,18 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Ansible
+      - name: Install Ansible & dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ansible python3-pip
-          pip3 install pywinrm
+          pip3 install "pywinrm>=0.4.0" requests requests-ntlm
 
-      - name: Create cert files
+      - name: Create certificate files
         run: |
           echo "${{ secrets.CERT_PEM }}" | base64 --decode > cert.pem
           echo "${{ secrets.CERT_KEY }}" | base64 --decode > key.pem
 
-      - name: Create inventory
+      - name: Create inventory file
         run: |
           echo "[windows]" > inventory.ini
           echo "winvm ansible_host=${{ secrets.VM_IP }}" >> inventory.ini
@@ -36,5 +36,5 @@ jobs:
           echo "ansible_winrm_cert_key_pem=$(pwd)/key.pem" >> inventory.ini
           echo "ansible_winrm_server_cert_validation=ignore" >> inventory.ini
 
-      - name: Run Ansible
+      - name: Run Ansible Playbook
         run: ansible-playbook -i inventory.ini deploy.yml
