@@ -1,0 +1,16 @@
+- name: Deploy app on Windows VM
+  hosts: windows
+  tasks:
+    - name: Create folder D:\projects\deploy
+      win_file:
+        path: D:\projects\deploy
+        state: directory
+
+    - name: Copy app.txt to VM
+      win_copy:
+        src: app.txt
+        dest: D:\projects\deploy\app.txt
+
+    - name: Run simple deployment script
+      win_shell: |
+        echo "Deployment Successful!" > D:\projects\deploy\output.txt

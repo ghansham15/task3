@@ -1,0 +1,2 @@
+Hello from Ansible Deployment 🚀
+This file is deployed using GitHub Actions CI/CD pipeline.
